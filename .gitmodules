@@ -1,0 +1,3 @@
+[submodule "lib/domotique-arduino-library"]
+	path = lib/domotique-arduino-library
+	url = git@github.com:computingify/domotique-arduino-library.git
