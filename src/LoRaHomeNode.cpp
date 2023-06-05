@@ -69,9 +69,11 @@
  * @brief Construct a new LoRaHomeNode::LoRaHomeNode object
  *
  */
-LoRaHomeNode::LoRaHomeNode()
+LoRaHomeNode::LoRaHomeNode(ChickenCorpDoor node) :
+  mNode(node)
 {
 }
+
 /**
 * Set Node in Rx Mode with active invert IQ
 * LoraWan principle to avoid node talking to each other
@@ -152,9 +154,9 @@ bool LoRaHomeNode::receiveAck()
       }
       if (lhf.createFromRxMessage(rxBuffer, j, true) == true)
       {
-        if ((lhf.nodeIdEmitter == LH_NODE_ID_GATEWAY) && (lhf.nodeIdRecipient == Node->getNodeId()) && (lhf.messageType == LH_MSG_TYPE_GW_ACK))
+        if ((lhf.nodeIdEmitter == LH_NODE_ID_GATEWAY) && (lhf.nodeIdRecipient == mNode.getNodeId()) && (lhf.messageType == LH_MSG_TYPE_GW_ACK))
         {
-          if (lhf.counter == Node->getTxCounter())
+          if (lhf.counter == mNode.getTxCounter())
           {
             DEBUG_MSG("--- good ack received!");
             return true;
@@ -182,11 +184,11 @@ void LoRaHomeNode::sendToGateway()
   uint8_t txBuffer[LH_FRAME_MAX_SIZE];
   DEBUG_MSG("--- create LoraHomeFrame");
   // create frame
-  LoRaHomeFrame lhf(MY_NETWORK_ID, Node->getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, Node->getTxCounter());
+  LoRaHomeFrame lhf(MY_NETWORK_ID, mNode.getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, mNode.getTxCounter());
   // create payload
   DEBUG_MSG("--- create LoraHomePayload");
   StaticJsonDocument<128> jsonDoc;
-  Node->addJsonTxPayload(jsonDoc);
+  mNode.addJsonTxPayload(jsonDoc);
   serializeJson(jsonDoc, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
   //add payload to the frame if any
   uint8_t size = lhf.serialize(txBuffer);
@@ -199,7 +201,7 @@ void LoRaHomeNode::sendToGateway()
   } while ((receiveAck() == false) && (retry < MAX_RETRY_NO_VALID_ACK));
   // increment TxCounter
   // TODO should only increment TxCounter if msg sent + ack received ... else error
-  Node->incrementTxCounter();
+  mNode.incrementTxCounter();
 }
 
 /**
@@ -265,7 +267,7 @@ void LoRaHomeNode::receiveLoraMessage()
   // serializeJson(jsonDoc, Serial);
   uint8_t nodeInvoked = lhf.nodeIdRecipient;
   // Am I the node invoked for this messages
-  if (nodeInvoked == Node->getNodeId())
+  if (nodeInvoked == mNode.getNodeId())
   {
     // I am the one!
     DEBUG_MSG("--- I am node invoked");
@@ -280,15 +282,13 @@ void LoRaHomeNode::receiveLoraMessage()
     // if message received request an ack
     if ((lhf.messageType == LH_MSG_TYPE_GW_MSG_ACK) || (lhf.messageType == LH_MSG_TYPE_NODE_MSG_ACK_REQ))
     {
-      LoRaHomeFrame lhfAck(MY_NETWORK_ID, Node->getNodeId(), lhf.nodeIdEmitter, LH_MSG_TYPE_NODE_ACK, lhf.counter);
+      LoRaHomeFrame lhfAck(MY_NETWORK_ID, mNode.getNodeId(), lhf.nodeIdEmitter, LH_MSG_TYPE_NODE_ACK, lhf.counter);
       uint8_t txBuffer[LH_FRAME_MIN_SIZE];
       uint8_t size = lhfAck.serialize(txBuffer);
       this->send(txBuffer, size);
       DEBUG_MSG("--- ack sent");
     }
     //JsonObject root = jsonDoc.to<JsonObject>();
-    Node->parseJsonRxPayload(jsonDoc);
+    mNode.parseJsonRxPayload(jsonDoc);
   }
 }
-
-LoRaHomeNode loraHomeNode;

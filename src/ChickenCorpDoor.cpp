@@ -1,6 +1,4 @@
-#include <LoRaNode.h>
-#include <Arduino.h>
-#include <TestNode.h>
+#include "ChickenCorpDoor.h"
 #include "NodeConfig.h"
 
 #define DEBUG
@@ -13,27 +11,26 @@
 #endif
 
 
-/**
- * @brief Construct a new Reed Switch Node:: Reed Switch Node object
- *
- */
-TestNode::TestNode()
+/*!********************************************************************
+ * @brief Construct a new Node:: Node object
+ **********************************************************************/
+ChickenCorpDoor::ChickenCorpDoor() :
+    mLux(A0),
+    mMotor(2)
 {
-    // empty
 }
 
 /**
 * Function invoked by the node right after its own setup (as per Arduino Setup function)
 * To be used for applicative setup
 */
-void TestNode::appSetup()
-{
+void ChickenCorpDoor::appSetup() {
     // set the Id of the node
     this->setNodeId(NODE_ID);
     this->setProcessingTimeInterval(PROCESSING_TIME_INTERVAL);
     this->setTransmissionTimeInterval(TRANSMISSION_TIME_INTERVAL);
     // ask for current state transmission
-    LoRaNode::setTransmissionNowFlag(true);
+    setTransmissionNowFlag(true);
 }
 
 
@@ -41,8 +38,7 @@ void TestNode::appSetup()
 * Add JSON Tx payload messages
 * @param payload the JSON payload to be completed as per application needs
 */
-void TestNode::addJsonTxPayload(JsonDocument& payload)
-{
+void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
     // send a simple tx counter
     static uint8_t i = 0;
     payload["tx"] = i++;
@@ -55,8 +51,7 @@ void TestNode::addJsonTxPayload(JsonDocument& payload)
 * Limit the processing to parsing the payload and retrieving the expected attributes
 * @param payload the JSON payload received by the node
 */
-void TestNode::parseJsonRxPayload(JsonDocument& payload)
-{
+void ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
     // assume receicing a message with json key "msg", display it
     if (payload["msg"].isNull() == false)
     {
@@ -70,9 +65,6 @@ void TestNode::parseJsonRxPayload(JsonDocument& payload)
 * Invoke every loop of the nodes before Rx and Tx
 * ONe should benefit from using processingTimeInterval to avoid overloading the node
 */
-void TestNode::appProcessing()
-{
-    // nothing
+void ChickenCorpDoor::appProcessing() {
+    mLux.Run();
 }
-
-LoRaNode* Node = new TestNode();

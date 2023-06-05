@@ -1,9 +1,9 @@
 #include <Arduino.h>
-#include <SPI.h>
-#include <LoRa.h>
 #include <ArduinoJson.h>
-#include <LoRaNode.h>
+#include <LoRa.h>
 #include <LoRaHomeNode.h>
+#include <SPI.h>
+#include "ChickenCorpDoor.h"
 
 #define DEBUG
 
@@ -14,6 +14,9 @@
 #define DEBUG_MSG(x) // define empty, so macro does nothing
 #endif
 
+// Objects instentiation
+ChickenCorpDoor mNode;
+LoRaHomeNode mLoRaHome(mNode);
 
 // sampling management
 unsigned long lastSendTime = 0;    // last send time
@@ -30,9 +33,9 @@ void setup()
 #endif
   DEBUG_MSG("initializing LoRa Node");
   // initialize LoRa    
-  loraHomeNode.setup();
+  mLoRaHome.setup();
   // call node specific configuration (end user)
-  Node->appSetup();
+  mNode.appSetup();
 }
 
 /**
@@ -43,16 +46,16 @@ void setup()
 void loop()
 {
   unsigned long tick = millis();
-  if ((tick - lastProcessTime) > Node->getProcessingTimeInterval())
+  if ((tick - lastProcessTime) > mNode.getProcessingTimeInterval())
   {
-    Node->appProcessing();
+    mNode.appProcessing();
     lastProcessTime = millis();
   }
-  if (((tick - lastSendTime) > Node->getTransmissionTimeInterval()) || (Node->getTransmissionNowFlag() == true))
+  if (((tick - lastSendTime) > mNode.getTransmissionTimeInterval()) || (mNode.getTransmissionNowFlag() == true))
   {
-    Node->setTransmissionNowFlag(false);
-    loraHomeNode.sendToGateway();
+    mNode.setTransmissionNowFlag(false);
+    mLoRaHome.sendToGateway();
     lastSendTime = millis(); // timestamp the message
   }
-  loraHomeNode.receiveLoraMessage();
+  mLoRaHome.receiveLoraMessage();
 }

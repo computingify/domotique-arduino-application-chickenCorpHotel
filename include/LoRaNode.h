@@ -26,14 +26,14 @@ public:
     * Add JSON Tx payload messages
     * @param payload the JSON payload to be completed as per application needs
     */
-  virtual void addJsonTxPayload(JsonDocument &payload) = 0;
+  virtual void addJsonTxPayload(JsonDocument& payload) = 0;
   /**
     * Parse JSON Rx payload
     * One should avoid any long processing in this routine. LoraNode::AppProcessing is the one to be used for this purpose
     * Limit the processing to parsing the payload and retrieving the expected attributes
     * @param payload the JSON payload received by the node
     */
-  virtual void parseJsonRxPayload(JsonDocument &payload) = 0;
+  virtual void parseJsonRxPayload(JsonDocument& payload) = 0;
 
 
   void setNodeId(uint8_t nodeId);
@@ -47,7 +47,7 @@ public:
   static void setTransmissionNowFlag(bool flag);
   static bool getTransmissionNowFlag();
 
-private:
+protected:
   uint8_t NodeId = 0;
   uint16_t TxCounter = 0;
   unsigned long transmissionTimeInterval = 10000; // 10
@@ -56,7 +56,5 @@ private:
   // to force immediate transmission
   volatile static bool needTransmissionNow;
 };
-
-extern LoRaNode *Node;
 
 #endif
