@@ -4,12 +4,12 @@
 
 //#define DEBUG
 
-#ifdef DEBUG
-#define DEBUG_MSG(x) Serial.println(F(x))
-#define DEBUG_MSG_VAR(x) Serial.println(x)
-#else
+// #ifdef DEBUG
+// #define DEBUG_MSG(x) Serial.println(F(x))
+// #define DEBUG_MSG_VAR(x) Serial.println(x)
+// #else
 #define DEBUG_MSG(x) // define empty, so macro does nothing
-#endif
+// #endif
 
 
 /**

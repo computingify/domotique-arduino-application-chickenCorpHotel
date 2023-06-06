@@ -41,9 +41,8 @@ void ChickenCorpDoor::appSetup() {
 void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
     payload["lux"] = mLux.Get();
     DEBUG_MSG("--- Send msg ...");
-    Serial.print("\"lux\": ");
-    Serial.println(payload["lux"]);
-    // DEBUG_MSG_VAR((const char*)payload["lux"]);
+    serializeJson(payload, Serial);
+    Serial.println("");
 }
 
 /**

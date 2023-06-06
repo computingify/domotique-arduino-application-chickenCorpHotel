@@ -7,14 +7,15 @@
 
 #define DEBUG
 
-#ifdef DEBUG
-#define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
-#define DEBUG_MSG(x) Serial.println(F(x))
-#define DEBUG_MSG_VAR(x) Serial.println(x)
-#else
+// #ifdef DEBUG
+// #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
+// #define DEBUG_MSG(x) Serial.println(F(x))
+// #define DEBUG_MSG_VAR(x) Serial.println(x)
+// #else
 #define DEBUG_MSG(x) // define empty, so macro does nothing
 #define DEBUG_MSG_VAR(x)
-#endif
+#define DEBUG_MSG_ONELINE(x)
+// #endif
 
 // -------------------------------------------------------
 // LoRa HARDWARE CONFIGURATION
@@ -69,7 +70,7 @@
  * @brief Construct a new LoRaHomeNode::LoRaHomeNode object
  *
  */
-LoRaHomeNode::LoRaHomeNode(ChickenCorpDoor node) :
+LoRaHomeNode::LoRaHomeNode(ChickenCorpDoor& node) :
   mNode(node)
 {
 }
