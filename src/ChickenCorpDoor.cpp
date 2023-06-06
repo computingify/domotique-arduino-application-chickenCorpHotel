@@ -16,7 +16,7 @@
  **********************************************************************/
 ChickenCorpDoor::ChickenCorpDoor() :
     mLux(A0),
-    mMotor(2)
+    mMotor(6, 7, 8, 9)
 {
 }
 
@@ -26,9 +26,9 @@ ChickenCorpDoor::ChickenCorpDoor() :
 */
 void ChickenCorpDoor::appSetup() {
     // set the Id of the node
-    this->setNodeId(NODE_ID);
-    this->setProcessingTimeInterval(PROCESSING_TIME_INTERVAL);
-    this->setTransmissionTimeInterval(TRANSMISSION_TIME_INTERVAL);
+    setNodeId(NODE_ID);
+    setProcessingTimeInterval(PROCESSING_TIME_INTERVAL);
+    setTransmissionTimeInterval(TRANSMISSION_TIME_INTERVAL);
     // ask for current state transmission
     setTransmissionNowFlag(true);
 }
@@ -39,10 +39,11 @@ void ChickenCorpDoor::appSetup() {
 * @param payload the JSON payload to be completed as per application needs
 */
 void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
-    // send a simple tx counter
-    static uint8_t i = 0;
-    payload["tx"] = i++;
+    payload["lux"] = mLux.Get();
     DEBUG_MSG("--- Send msg ...");
+    Serial.print("\"lux\": ");
+    Serial.println(payload["lux"]);
+    // DEBUG_MSG_VAR((const char*)payload["lux"]);
 }
 
 /**
@@ -52,11 +53,16 @@ void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
 * @param payload the JSON payload received by the node
 */
 void ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
-    // assume receicing a message with json key "msg", display it
-    if (payload["msg"].isNull() == false)
-    {
+
+    if (false == payload["door"].isNull()) {
         DEBUG_MSG("--- receive:");
-        DEBUG_MSG_VAR((const char*)payload["msg"]);
+        DEBUG_MSG_VAR((const char*)payload["door"]);
+        if (OPEN == payload["door"]) {
+            mMotor.Open();
+        }
+        else if (CLOSE == payload["door"]) {
+            mMotor.Close();
+        }
     }
 }
 
@@ -66,5 +72,12 @@ void ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
 * ONe should benefit from using processingTimeInterval to avoid overloading the node
 */
 void ChickenCorpDoor::appProcessing() {
+    // Sample lux measure
     mLux.Run();
+
+    // Manage door
+    if (eDoorState::eOpenning == mMotor.GetState()
+        || eDoorState::eClosing == mMotor.GetState()) {
+        mMotor.isProcessFinish();
+    }
 }

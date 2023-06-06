@@ -6,4 +6,7 @@ const unsigned long PROCESSING_TIME_INTERVAL = 5000;
 const unsigned long TRANSMISSION_TIME_INTERVAL = 5000;
 const uint16_t MY_NETWORK_ID = 0xACDC;
 
+#define OPEN "o"
+#define CLOSE "c"
+
 #endif 
