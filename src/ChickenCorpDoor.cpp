@@ -39,8 +39,15 @@ void ChickenCorpDoor::appSetup() {
 * @param payload the JSON payload to be completed as per application needs
 */
 void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
-    payload["lux"] = mLux.Get();
+
+    // DEBUG_MSG_VAR(mLux.Get());
+    // float adcVal = mLux.Get() * 3.3 / 1024;
+    // DEBUG_MSG_VAR(adcVal);
+    // float val = (3.3 / adcVal - 1) * 10000;
+    // DEBUG_MSG_VAR(val);
+    // payload["lux"] = pow(10, (9.3 * log10(val) - 24.2));
     DEBUG_MSG("--- Send msg ...");
+    payload["lux"] = mLux.Get();
     serializeJson(payload, Serial);
     Serial.println("");
 }
@@ -53,16 +60,20 @@ void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
 */
 void ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
 
-    if (false == payload["door"].isNull()) {
+    if (!payload["door"].isNull()) {
         DEBUG_MSG("--- receive:");
-        DEBUG_MSG_VAR((const char*)payload["door"]);
+        // DEBUG_MSG_VAR((const char*)payload["door"]);
         if (OPEN == payload["door"]) {
             mMotor.Open();
         }
         else if (CLOSE == payload["door"]) {
             mMotor.Close();
         }
+        else if (STOP == payload["door"]) {
+            mMotor.Stop();
+        }
     }
+
 }
 
 /**

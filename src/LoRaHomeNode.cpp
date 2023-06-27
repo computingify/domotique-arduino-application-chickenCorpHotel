@@ -8,13 +8,13 @@
 #define DEBUG
 
 // #ifdef DEBUG
-// #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
-// #define DEBUG_MSG(x) Serial.println(F(x))
-// #define DEBUG_MSG_VAR(x) Serial.println(x)
+#define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
+#define DEBUG_MSG(x) Serial.println(F(x))
+#define DEBUG_MSG_VAR(x) Serial.println(x)
 // #else
-#define DEBUG_MSG(x) // define empty, so macro does nothing
-#define DEBUG_MSG_VAR(x)
-#define DEBUG_MSG_ONELINE(x)
+// #define DEBUG_MSG(x) // define empty, so macro does nothing
+// #define DEBUG_MSG_VAR(x)
+// #define DEBUG_MSG_ONELINE(x)
 // #endif
 
 // -------------------------------------------------------
@@ -137,7 +137,7 @@ bool LoRaHomeNode::receiveAck()
   //try to parse packet
   int packetSize = LoRa.parsePacket();
   LoRaHomeFrame lhf;
-  DEBUG_MSG("LoRaHomeNode::receiveAck");
+  // DEBUG_MSG("LoRaHomeNode::receiveAck");
   // switch to rxMode to receive ACK
   this->rxMode();
   while (((millis() - ackStartWaitingTime) < ACK_TIMEOUT) && (packetSize == 0))
@@ -159,7 +159,7 @@ bool LoRaHomeNode::receiveAck()
         {
           if (lhf.counter == mNode.getTxCounter())
           {
-            DEBUG_MSG("--- good ack received!");
+            // DEBUG_MSG("--- good ack received!");
             return true;
           }
         }
@@ -167,11 +167,11 @@ bool LoRaHomeNode::receiveAck()
       else
       {
         packetSize = 0; // to loop again
-        DEBUG_MSG("--- bad ack received!");
+        // DEBUG_MSG("--- bad ack received!");
       }
     }
   }
-  DEBUG_MSG("--- no ACK received");
+  // DEBUG_MSG("--- no ACK received");
   return false;
 }
 
@@ -181,19 +181,19 @@ bool LoRaHomeNode::receiveAck()
 void LoRaHomeNode::sendToGateway()
 {
   int retry = 0;
-  DEBUG_MSG("LoRaHomeNode::sendToGateway()");
+  // DEBUG_MSG("LoRaHomeNode::sendToGateway()");
   uint8_t txBuffer[LH_FRAME_MAX_SIZE];
-  DEBUG_MSG("--- create LoraHomeFrame");
+  // DEBUG_MSG("--- create LoraHomeFrame");
   // create frame
   LoRaHomeFrame lhf(MY_NETWORK_ID, mNode.getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, mNode.getTxCounter());
   // create payload
-  DEBUG_MSG("--- create LoraHomePayload");
+  // DEBUG_MSG("--- create LoraHomePayload");
   StaticJsonDocument<128> jsonDoc;
   mNode.addJsonTxPayload(jsonDoc);
   serializeJson(jsonDoc, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
   //add payload to the frame if any
   uint8_t size = lhf.serialize(txBuffer);
-  DEBUG_MSG("--- LoraHomeFrame serialized");
+  // DEBUG_MSG("--- LoraHomeFrame serialized");
   // send the LoRa message until valid ack is received with max retries
   do
   {
@@ -212,14 +212,14 @@ void LoRaHomeNode::sendToGateway()
  */
 void LoRaHomeNode::send(uint8_t* txBuffer, uint8_t size)
 {
-  DEBUG_MSG("LoRaHomeNode::send");
-  DEBUG_MSG("--- sending LoRa message to LoRa2MQTT gateway");
+  // DEBUG_MSG("LoRaHomeNode::send");
+  // DEBUG_MSG("--- sending LoRa message to LoRa2MQTT gateway");
   this->txMode();
   LoRa.beginPacket();
   for (uint8_t i = 0; i < size; i++)
   {
     LoRa.write(txBuffer[i]);
-    //DEBUG_MSG_VAR(txBuffer[i]);
+    // DEBUG_MSG_VAR(txBuffer[i]);
   }
   LoRa.endPacket();
   this->rxMode();
@@ -270,8 +270,6 @@ void LoRaHomeNode::receiveLoraMessage()
   // Am I the node invoked for this messages
   if (nodeInvoked == mNode.getNodeId())
   {
-    // I am the one!
-    DEBUG_MSG("--- I am node invoked");
     // parse JSON message
     DeserializationError error = deserializeJson(jsonDoc, lhf.jsonPayload);
     // deserializeJson error

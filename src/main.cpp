@@ -36,6 +36,9 @@ void setup()
   mLoRaHome.setup();
   // call node specific configuration (end user)
   mNode.appSetup();
+
+  // Update Data before start
+  mNode.appProcessing();
 }
 
 /**
