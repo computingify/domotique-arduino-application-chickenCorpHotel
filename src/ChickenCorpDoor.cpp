@@ -16,7 +16,8 @@
  **********************************************************************/
 ChickenCorpDoor::ChickenCorpDoor() :
     mLux(PIN_LUX_METER),
-    mMotor(PIN_MOTOR_IN1, PIN_MOTOR_IN2, PIN_MOTOR_LIMIT_OPEN, PIN_MOTOR_LIMIT_CLOSE)
+    mMotor(PIN_MOTOR_IN1, PIN_MOTOR_IN2, PIN_MOTOR_LIMIT_OPEN, PIN_MOTOR_LIMIT_CLOSE),
+    mTempHumidity(PIN_DHT22, DHT22)
 {
 }
 
@@ -31,6 +32,9 @@ void ChickenCorpDoor::appSetup() {
     setTransmissionTimeInterval(TRANSMISSION_TIME_INTERVAL);
     // ask for current state transmission
     setTransmissionNowFlag(true);
+
+    //Initialize Temperature Humidity sensor
+    mTempHumidity.begin();
 }
 
 
@@ -48,6 +52,9 @@ void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
     // payload["lux"] = pow(10, (9.3 * log10(val) - 24.2));
     DEBUG_MSG("--- Send msg ...");
     payload[MSG_LUX] = mLux.Get();
+    payload[MSG_HUMIDITY] = mTempHumidity.readHumidity();
+    payload[MSG_TEMP] = mTempHumidity.readTemperature();
+
     serializeJson(payload, Serial);
     Serial.println("");
 }

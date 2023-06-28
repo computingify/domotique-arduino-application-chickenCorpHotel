@@ -60,11 +60,7 @@ void loop()
 
     // Artificially set the time after ProcessingTimeInterval
     if (isRunFastly) {
-      Serial.println("Run fast");
       lastProcessTime -= mNode.getProcessingTimeInterval();
-    }
-    else {
-      Serial.println("Run fast Finish");
     }
   }
 

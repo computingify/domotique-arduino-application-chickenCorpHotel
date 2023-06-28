@@ -8,6 +8,8 @@ const uint16_t MY_NETWORK_ID = 0xACDC;
 
 // Jeedom Message
 #define MSG_LUX "lux"
+#define MSG_TEMP "temp"
+#define MSG_HUMIDITY "hum"
 
 // Jeedom Command
 #define MSG_DOOR "door"
@@ -20,4 +22,5 @@ const uint16_t MY_NETWORK_ID = 0xACDC;
 #define PIN_MOTOR_IN2 7
 #define PIN_MOTOR_LIMIT_OPEN 8
 #define PIN_MOTOR_LIMIT_CLOSE 9
+#define PIN_DHT22 A2
 #endif 

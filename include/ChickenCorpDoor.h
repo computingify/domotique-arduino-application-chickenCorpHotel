@@ -6,6 +6,7 @@
 #include <LoRaNode.h>
 #include "actionner/HBridge.h"
 #include "reader/AnalogInputFiltered.h"
+#include "reader/DHT/DHT.h"
 
 class ChickenCorpDoor : public LoRaNode
 {
@@ -24,6 +25,7 @@ private:
 
     AnalogInputFiltered mLux;
     HBridge mMotor;
+    DHT mTempHumidity;
 };
 
 #endif
