@@ -15,8 +15,8 @@
  * @brief Construct a new Node:: Node object
  **********************************************************************/
 ChickenCorpDoor::ChickenCorpDoor() :
-    mLux(A0),
-    mMotor(6, 7, 8, 9)
+    mLux(PIN_LUX_METER),
+    mMotor(PIN_MOTOR_IN1, PIN_MOTOR_IN2, PIN_MOTOR_LIMIT_OPEN, PIN_MOTOR_LIMIT_CLOSE)
 {
 }
 
@@ -47,7 +47,7 @@ void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
     // DEBUG_MSG_VAR(val);
     // payload["lux"] = pow(10, (9.3 * log10(val) - 24.2));
     DEBUG_MSG("--- Send msg ...");
-    payload["lux"] = mLux.Get();
+    payload[MSG_LUX] = mLux.Get();
     serializeJson(payload, Serial);
     Serial.println("");
 }
@@ -57,23 +57,26 @@ void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
 * One should avoid any long processing in this routine. LoraNode::AppProcessing is the one to be used for this purpose
 * Limit the processing to parsing the payload and retrieving the expected attributes
 * @param payload the JSON payload received by the node
+* return true in case of new message received
 */
-void ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
+bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
+    bool isMessageReceived(false);
 
-    if (!payload["door"].isNull()) {
+    if (!payload[MSG_DOOR].isNull()) {
         DEBUG_MSG("--- receive:");
-        // DEBUG_MSG_VAR((const char*)payload["door"]);
-        if (OPEN == payload["door"]) {
+        // DEBUG_MSG_VAR((const char*)payload[MSG_DOOR]);
+        if (OPEN == payload[MSG_DOOR]) {
             mMotor.Open();
         }
-        else if (CLOSE == payload["door"]) {
+        else if (CLOSE == payload[MSG_DOOR]) {
             mMotor.Close();
         }
-        else if (STOP == payload["door"]) {
+        else if (STOP == payload[MSG_DOOR]) {
             mMotor.Stop();
         }
+        isMessageReceived = true;
     }
-
+    return isMessageReceived;
 }
 
 /**
@@ -81,13 +84,17 @@ void ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
 * Invoke every loop of the nodes before Rx and Tx
 * ONe should benefit from using processingTimeInterval to avoid overloading the node
 */
-void ChickenCorpDoor::appProcessing() {
+bool ChickenCorpDoor::appProcessing() {
+    bool isRunFastly(false);
+
     // Sample lux measure
     mLux.Run();
 
     // Manage door
     if (eDoorState::eOpenning == mMotor.GetState()
         || eDoorState::eClosing == mMotor.GetState()) {
-        mMotor.isProcessFinish();
+        isRunFastly = !mMotor.isProcessFinish();
     }
+
+    return isRunFastly;
 }

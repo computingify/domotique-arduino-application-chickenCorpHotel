@@ -14,9 +14,9 @@ public:
     virtual ~ChickenCorpDoor() = default;
 
     void appSetup();
-    void appProcessing();
+    virtual bool appProcessing() override;
     void addJsonTxPayload(JsonDocument& payload);
-    void parseJsonRxPayload(JsonDocument& payload);
+    virtual bool parseJsonRxPayload(JsonDocument& payload) override;
 
 private:
     void commandRelay(uint8_t relay, uint8_t cmd);

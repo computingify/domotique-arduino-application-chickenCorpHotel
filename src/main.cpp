@@ -48,17 +48,34 @@ void setup()
 */
 void loop()
 {
+  bool isNewMessageReceived(false);
   unsigned long tick = millis();
-  if ((tick - lastProcessTime) > mNode.getProcessingTimeInterval())
-  {
-    mNode.appProcessing();
+
+  // Application processing Task
+  if ((tick - lastProcessTime) > mNode.getProcessingTimeInterval()
+    || isNewMessageReceived) {
+    bool isRunFastly = mNode.appProcessing();
+
     lastProcessTime = millis();
+
+    // Artificially set the time after ProcessingTimeInterval
+    if (isRunFastly) {
+      Serial.println("Run fast");
+      lastProcessTime -= mNode.getProcessingTimeInterval();
+    }
+    else {
+      Serial.println("Run fast Finish");
+    }
   }
-  if (((tick - lastSendTime) > mNode.getTransmissionTimeInterval()) || (mNode.getTransmissionNowFlag() == true))
-  {
+
+  // Send Task
+  if (((tick - lastSendTime) > mNode.getTransmissionTimeInterval())
+    || (mNode.getTransmissionNowFlag() == true)) {
     mNode.setTransmissionNowFlag(false);
     mLoRaHome.sendToGateway();
     lastSendTime = millis(); // timestamp the message
   }
-  mLoRaHome.receiveLoraMessage();
+
+  // Receive Task
+  isNewMessageReceived = mLoRaHome.receiveLoraMessage();
 }

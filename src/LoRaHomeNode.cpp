@@ -228,14 +228,16 @@ void LoRaHomeNode::send(uint8_t* txBuffer, uint8_t size)
 /**
 * [receiveLoraMessage description]
 */
-void LoRaHomeNode::receiveLoraMessage()
+bool LoRaHomeNode::receiveLoraMessage()
 {
+  bool isMessageReceived(false);
+
   //try to parse packet
   int packetSize = LoRa.parsePacket();
   // return immediately if no message available
   if (packetSize == 0)
   {
-    return;
+    return isMessageReceived;
   }
   // check if we can accept the message
   if ((packetSize > LH_FRAME_MAX_SIZE) || (packetSize < LH_FRAME_MIN_SIZE))
@@ -245,7 +247,7 @@ void LoRaHomeNode::receiveLoraMessage()
       // flush Fifo
       LoRa.read();
     }
-    return;
+    return isMessageReceived;
   }
   DEBUG_MSG("LoRaHomeNode::receiveLoraMessage");
   // read bytes available
@@ -262,7 +264,7 @@ void LoRaHomeNode::receiveLoraMessage()
   if (lhf.networkID != MY_NETWORK_ID)
   {
     DEBUG_MSG("--- ignore message, not the right network ID");
-    return;
+    return isMessageReceived;
   }
   DEBUG_MSG("--- message received");
   // serializeJson(jsonDoc, Serial);
@@ -276,7 +278,7 @@ void LoRaHomeNode::receiveLoraMessage()
     if (error)
     {
       DEBUG_MSG("--- deserializeJson error");
-      return;
+      return isMessageReceived;
     }
     // if message received request an ack
     if ((lhf.messageType == LH_MSG_TYPE_GW_MSG_ACK) || (lhf.messageType == LH_MSG_TYPE_NODE_MSG_ACK_REQ))
@@ -288,6 +290,8 @@ void LoRaHomeNode::receiveLoraMessage()
       DEBUG_MSG("--- ack sent");
     }
     //JsonObject root = jsonDoc.to<JsonObject>();
-    mNode.parseJsonRxPayload(jsonDoc);
+    isMessageReceived = mNode.parseJsonRxPayload(jsonDoc);
   }
+
+  return isMessageReceived;
 }

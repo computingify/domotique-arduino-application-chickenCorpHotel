@@ -6,8 +6,18 @@ const unsigned long PROCESSING_TIME_INTERVAL = 5000;
 const unsigned long TRANSMISSION_TIME_INTERVAL = 10000;
 const uint16_t MY_NETWORK_ID = 0xACDC;
 
+// Jeedom Message
+#define MSG_LUX "lux"
+
+// Jeedom Command
+#define MSG_DOOR "door"
 #define OPEN "o"
 #define CLOSE "c"
 #define STOP "s"
 
+#define PIN_LUX_METER A0
+#define PIN_MOTOR_IN1 6
+#define PIN_MOTOR_IN2 7
+#define PIN_MOTOR_LIMIT_OPEN 8
+#define PIN_MOTOR_LIMIT_CLOSE 9
 #endif 

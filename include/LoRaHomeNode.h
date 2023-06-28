@@ -12,7 +12,7 @@ public:
     LoRaHomeNode(ChickenCorpDoor& node);
     void setup();
     void sendToGateway();
-    void receiveLoraMessage();
+    bool receiveLoraMessage();
 
 protected:
     void rxMode();
