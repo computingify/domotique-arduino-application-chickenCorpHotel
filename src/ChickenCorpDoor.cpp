@@ -17,7 +17,8 @@
 ChickenCorpDoor::ChickenCorpDoor() :
     mLux(PIN_LUX_METER),
     mMotor(PIN_MOTOR_IN1, PIN_MOTOR_IN2, PIN_MOTOR_LIMIT_OPEN, PIN_MOTOR_LIMIT_CLOSE),
-    mTempHumidity(PIN_DHT22, DHT22)
+    mTempHumidity(PIN_DHT22, DHT22),
+    mRadio(PIN_RADIO)
 {
 }
 
@@ -44,19 +45,12 @@ void ChickenCorpDoor::appSetup() {
 */
 void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
 
-    // DEBUG_MSG_VAR(mLux.Get());
-    // float adcVal = mLux.Get() * 3.3 / 1024;
-    // DEBUG_MSG_VAR(adcVal);
-    // float val = (3.3 / adcVal - 1) * 10000;
-    // DEBUG_MSG_VAR(val);
-    // payload["lux"] = pow(10, (9.3 * log10(val) - 24.2));
-    DEBUG_MSG("--- Send msg ...");
     payload[MSG_LUX] = mLux.Get();
     payload[MSG_HUMIDITY] = mTempHumidity.readHumidity();
     payload[MSG_TEMP] = mTempHumidity.readTemperature();
-
+    payload[MSG_DOOR_STATE] = mMotor.GetState();
+    payload[MSG_RADIO_STATE] = mRadio.GetState();
     serializeJson(payload, Serial);
-    Serial.println("");
 }
 
 /**
@@ -70,8 +64,6 @@ bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
     bool isMessageReceived(false);
 
     if (!payload[MSG_DOOR].isNull()) {
-        DEBUG_MSG("--- receive:");
-        // DEBUG_MSG_VAR((const char*)payload[MSG_DOOR]);
         if (OPEN == payload[MSG_DOOR]) {
             mMotor.Open();
         }
@@ -83,6 +75,16 @@ bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
         }
         isMessageReceived = true;
     }
+    if (!payload[MSG_RADIO].isNull()) {
+        if (START == payload[MSG_RADIO]) {
+            mRadio.Enable();
+        }
+        else if (STOP == payload[MSG_RADIO]) {
+            mRadio.Disable();
+        }
+    }
+
+    needTransmissionNow = true;
     return isMessageReceived;
 }
 
@@ -98,8 +100,8 @@ bool ChickenCorpDoor::appProcessing() {
     mLux.Run();
 
     // Manage door
-    if (eDoorState::eOpenning == mMotor.GetState()
-        || eDoorState::eClosing == mMotor.GetState()) {
+    if (eDoorState::eOpened != mMotor.GetState()
+        && eDoorState::eClosed != mMotor.GetState()) {
         isRunFastly = !mMotor.isProcessFinish();
     }
 

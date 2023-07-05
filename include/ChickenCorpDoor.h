@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <LoRaNode.h>
 #include "actionner/HBridge.h"
+#include "actionner/DigitalOutput.h"
 #include "reader/AnalogInputFiltered.h"
 #include "reader/DHT/DHT.h"
 
@@ -26,6 +27,7 @@ private:
     AnalogInputFiltered mLux;
     HBridge mMotor;
     DHT mTempHumidity;
+    DigitalOutput mRadio;
 };
 
 #endif
