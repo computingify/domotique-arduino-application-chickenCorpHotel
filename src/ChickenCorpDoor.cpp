@@ -83,7 +83,9 @@ bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
             mRadio.Disable();
         }
     }
-
+    if (!payload[MSG_SAMPLING].isNull()) {
+        setTransmissionTimeInterval(payload[MSG_SAMPLING]);
+    }
     needTransmissionNow = true;
     return isMessageReceived;
 }
@@ -100,8 +102,8 @@ bool ChickenCorpDoor::appProcessing() {
     mLux.Run();
 
     // Manage door
-    if (eDoorState::eOpened != mMotor.GetState()
-        && eDoorState::eClosed != mMotor.GetState()) {
+    if (eDoorState::eOpenning == mMotor.GetState()
+        || eDoorState::eClosing == mMotor.GetState()) {
         isRunFastly = !mMotor.isProcessFinish();
     }
 

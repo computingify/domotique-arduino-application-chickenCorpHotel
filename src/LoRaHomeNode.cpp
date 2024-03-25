@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "NodeConfig.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))

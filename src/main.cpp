@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include "ChickenCorpDoor.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG(x) Serial.println(F(x))
