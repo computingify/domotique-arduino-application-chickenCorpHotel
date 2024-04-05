@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include "ChickenCorpDoor.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG(x) Serial.println(F(x))
@@ -74,4 +74,7 @@ void loop()
 
   // Receive Task
   isNewMessageReceived = mLoRaHome.receiveLoraMessage();
+
+  // Button Management for door action
+  mNode.buttonMgt();
 }

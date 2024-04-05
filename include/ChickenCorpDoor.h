@@ -19,7 +19,7 @@ public:
     virtual bool appProcessing() override;
     void addJsonTxPayload(JsonDocument& payload);
     virtual bool parseJsonRxPayload(JsonDocument& payload) override;
-
+    void buttonMgt();
 private:
     void commandRelay(uint8_t relay, uint8_t cmd);
     void parseJsonRelayCmd(uint8_t relay, char* cmd);
@@ -28,6 +28,8 @@ private:
     HBridge mMotor;
     DHT mTempHumidity;
     DigitalOutput mRadio;
+    int mButtonOpen;
+    int mButtonClose;
 };
 
 #endif

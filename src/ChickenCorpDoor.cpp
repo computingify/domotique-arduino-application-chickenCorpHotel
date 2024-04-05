@@ -18,8 +18,12 @@ ChickenCorpDoor::ChickenCorpDoor() :
     mLux(PIN_LUX_METER),
     mMotor(PIN_MOTOR_IN1, PIN_MOTOR_IN2, PIN_MOTOR_LIMIT_OPEN, PIN_MOTOR_LIMIT_CLOSE),
     mTempHumidity(PIN_DHT22, DHT22),
-    mRadio(PIN_RADIO)
+    mRadio(PIN_RADIO),
+    mButtonOpen(PIN_MOTOR_OPEN),
+    mButtonClose(PIN_MOTOR_CLOSE)
 {
+    pinMode(mButtonOpen, INPUT);
+    pinMode(mButtonClose, INPUT);
 }
 
 /**
@@ -62,7 +66,9 @@ void ChickenCorpDoor::addJsonTxPayload(JsonDocument& payload) {
 */
 bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
     bool isMessageReceived(false);
-
+    String jsonString;
+    serializeJson(payload, jsonString);
+    DEBUG_MSG_VAR(jsonString);
     if (!payload[MSG_DOOR].isNull()) {
         if (OPEN == payload[MSG_DOOR]) {
             mMotor.Open();
@@ -108,4 +114,17 @@ bool ChickenCorpDoor::appProcessing() {
     }
 
     return isRunFastly;
+}
+
+void ChickenCorpDoor::buttonMgt() {
+    if(HIGH == digitalRead(mButtonOpen)
+        && (eDoorState::eOpenning != mMotor.GetState()
+            || eDoorState::eOpened != mMotor.GetState())){
+        mMotor.Open();
+    }
+    else if(HIGH == digitalRead(mButtonClose)
+        && (eDoorState::eClosing != mMotor.GetState()
+            || eDoorState::eClosed != mMotor.GetState())){
+        mMotor.Close();
+    }
 }
