@@ -21,6 +21,8 @@ LoRaHomeNode mLoRaHome(mNode);
 // sampling management
 unsigned long lastSendTime = 0;    // last send time
 unsigned long lastProcessTime = 0; // last processing time
+bool isNewMessageReceived(false);
+bool isButtonProcessing(false);
 
 void setup()
 {
@@ -48,12 +50,12 @@ void setup()
 */
 void loop()
 {
-  bool isNewMessageReceived(false);
   unsigned long tick = millis();
 
   // Application processing Task
   if ((tick - lastProcessTime) > mNode.getProcessingTimeInterval()
-    || isNewMessageReceived) {
+    || isNewMessageReceived
+    || isButtonProcessing) {
     bool isRunFastly = mNode.appProcessing();
 
     lastProcessTime = millis();
@@ -76,5 +78,5 @@ void loop()
   isNewMessageReceived = mLoRaHome.receiveLoraMessage();
 
   // Button Management for door action
-  mNode.buttonMgt();
+  isButtonProcessing = mNode.buttonMgt();
 }

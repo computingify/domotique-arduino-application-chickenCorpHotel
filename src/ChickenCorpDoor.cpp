@@ -16,7 +16,10 @@
  **********************************************************************/
 ChickenCorpDoor::ChickenCorpDoor() :
     mLux(PIN_LUX_METER),
-    mMotor(PIN_MOTOR_IN1, PIN_MOTOR_IN2, PIN_MOTOR_LIMIT_OPEN, PIN_MOTOR_LIMIT_CLOSE),
+    mMotor(PIN_MOTOR_IN1,
+           PIN_MOTOR_IN2,
+           PIN_MOTOR_LIMIT_OPEN,
+           PIN_MOTOR_LIMIT_CLOSE),
     mTempHumidity(PIN_DHT22, DHT22),
     mRadio(PIN_RADIO),
     mButtonOpen(PIN_MOTOR_OPEN),
@@ -116,15 +119,22 @@ bool ChickenCorpDoor::appProcessing() {
     return isRunFastly;
 }
 
-void ChickenCorpDoor::buttonMgt() {
+bool ChickenCorpDoor::buttonMgt() {
+    bool runFastly = false;
     if(HIGH == digitalRead(mButtonOpen)
         && (eDoorState::eOpenning != mMotor.GetState()
-            || eDoorState::eOpened != mMotor.GetState())){
+            && eDoorState::eOpened != mMotor.GetState())){
         mMotor.Open();
+        DEBUG_MSG("Open requested");
+        runFastly = true;
     }
     else if(HIGH == digitalRead(mButtonClose)
         && (eDoorState::eClosing != mMotor.GetState()
-            || eDoorState::eClosed != mMotor.GetState())){
+            && eDoorState::eClosed != mMotor.GetState())){
         mMotor.Close();
+        DEBUG_MSG("Close requested");
+        runFastly = true;
     }
+
+    return runFastly;
 }

@@ -25,10 +25,10 @@ const uint16_t MY_NETWORK_ID = 0xACDC;
 #define PIN_LUX_METER A0
 #define PIN_MOTOR_IN1 6
 #define PIN_MOTOR_IN2 7
-#define PIN_MOTOR_LIMIT_OPEN 8
-#define PIN_MOTOR_LIMIT_CLOSE 9
-#define PIN_MOTOR_OPEN 18  // A4
-#define PIN_MOTOR_CLOSE 17 // A3
+#define PIN_MOTOR_LIMIT_OPEN 3 // A3 -> 17
+#define PIN_MOTOR_LIMIT_CLOSE 17 // A4
+#define PIN_MOTOR_OPEN 8
+#define PIN_MOTOR_CLOSE 9
 #define PIN_DHT22 A2
 #define PIN_RADIO 2
 #endif 

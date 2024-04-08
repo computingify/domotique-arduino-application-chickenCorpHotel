@@ -19,7 +19,7 @@ public:
     virtual bool appProcessing() override;
     void addJsonTxPayload(JsonDocument& payload);
     virtual bool parseJsonRxPayload(JsonDocument& payload) override;
-    void buttonMgt();
+    bool buttonMgt();
 private:
     void commandRelay(uint8_t relay, uint8_t cmd);
     void parseJsonRelayCmd(uint8_t relay, char* cmd);
