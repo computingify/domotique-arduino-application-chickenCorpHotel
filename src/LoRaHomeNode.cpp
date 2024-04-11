@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "NodeConfig.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
@@ -181,28 +181,32 @@ bool LoRaHomeNode::receiveAck()
 void LoRaHomeNode::sendToGateway()
 {
   int retry = 0;
-  // DEBUG_MSG("LoRaHomeNode::sendToGateway()");
+  DEBUG_MSG("LoRaHomeNode::sendToGateway()");
   uint8_t txBuffer[LH_FRAME_MAX_SIZE];
-  // DEBUG_MSG("--- create LoraHomeFrame");
+  DEBUG_MSG("--- create LoraHomeFrame");
   // create frame
   LoRaHomeFrame lhf(MY_NETWORK_ID, mNode.getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, mNode.getTxCounter());
   // create payload
-  // DEBUG_MSG("--- create LoraHomePayload");
+  DEBUG_MSG("--- create LoraHomePayload");
   StaticJsonDocument<128> jsonDoc;
   mNode.addJsonTxPayload(jsonDoc);
   serializeJson(jsonDoc, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
   //add payload to the frame if any
   uint8_t size = lhf.serialize(txBuffer);
-  // DEBUG_MSG("--- LoraHomeFrame serialized");
+  DEBUG_MSG("--- LoraHomeFrame serialized");
   // send the LoRa message until valid ack is received with max retries
   do
   {
+    DEBUG_MSG_ONELINE("--- Try sending for retry = ");
+    DEBUG_MSG_VAR(retry);
     retry++;
     this->send(txBuffer, size);
+    DEBUG_MSG("--- Sent");
   } while ((receiveAck() == false) && (retry < MAX_RETRY_NO_VALID_ACK));
   // increment TxCounter
   // TODO should only increment TxCounter if msg sent + ack received ... else error
   mNode.incrementTxCounter();
+  DEBUG_MSG("--- Send operation Finished");
 }
 
 /**
@@ -212,17 +216,20 @@ void LoRaHomeNode::sendToGateway()
  */
 void LoRaHomeNode::send(uint8_t* txBuffer, uint8_t size)
 {
-  // DEBUG_MSG("LoRaHomeNode::send");
   // DEBUG_MSG("--- sending LoRa message to LoRa2MQTT gateway");
   this->txMode();
+  DEBUG_MSG("Send: Transmit mode");
   LoRa.beginPacket();
+  DEBUG_MSG("Send: begin packet done");
   for (uint8_t i = 0; i < size; i++)
   {
     LoRa.write(txBuffer[i]);
     // DEBUG_MSG_VAR(txBuffer[i]);
   }
   LoRa.endPacket();
+  DEBUG_MSG("Send: packet done");
   this->rxMode();
+  DEBUG_MSG("Send: Receive mode");
 }
 
 /**

@@ -176,11 +176,13 @@ int LoRaClass::endPacket(bool async)
 
   if (async) {
     // grace time is required for the radio
-    delayMicroseconds(150);
+    delayMicroseconds(200);
   } else {
     // wait for TX done
-    while ((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) {
-      yield();
+    int retry = 0;
+    while (((readRegister(REG_IRQ_FLAGS) & IRQ_TX_DONE_MASK) == 0) && (retry < 200)) {
+      delay(10);
+      retry++;
     }
     // clear IRQ's
     writeRegister(REG_IRQ_FLAGS, IRQ_TX_DONE_MASK);

@@ -5,7 +5,7 @@
 #include <SPI.h>
 #include "ChickenCorpDoor.h"
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG(x) Serial.println(F(x))
@@ -13,6 +13,8 @@
 #define DEBUG_MSG_ONE_LN(x) Serial.print(x)
 #else
 #define DEBUG_MSG(x) // define empty, so macro does nothing
+#define DEBUG_MSG_VAR(x)
+#define DEBUG_MSG_ONE_LN(x)
 #endif
 
 // Objects instentiation
@@ -24,7 +26,9 @@ unsigned long nextSendTime = 0;    // last send time
 unsigned long nextProcessTime = 0; // last processing time
 bool isNewMessageReceived(false);
 bool isButtonProcessing(false);
+#ifdef DEBUG
 unsigned int i;
+#endif
 
 void setup()
 {
@@ -53,11 +57,13 @@ void setup()
 void loop()
 {
   unsigned long tick = millis();
+#ifdef DEBUG
   if(1000 < i){
     DEBUG_MSG_ONE_LN(".");
     i = 0;
   }
   i++;
+#endif
 
   // Application processing Task
   if (tick >= nextProcessTime
@@ -90,9 +96,4 @@ void loop()
 
   // Button Management for door action
   isButtonProcessing = mNode.buttonMgt();
-
-  // if (tick >= nextProcessTime || tick >= nextSendTime) {
-  //   mLoRaHome.reset();
-  //   DEBUG_MSG("Reset");
-  // }
 }
