@@ -10,6 +10,7 @@
 #ifdef DEBUG
 #define DEBUG_MSG(x) Serial.println(F(x))
 #define DEBUG_MSG_VAR(x) Serial.println(x)
+#define DEBUG_MSG_ONE_LN(x) Serial.print(x)
 #else
 #define DEBUG_MSG(x) // define empty, so macro does nothing
 #endif
@@ -19,10 +20,11 @@ ChickenCorpDoor mNode;
 LoRaHomeNode mLoRaHome(mNode);
 
 // sampling management
-unsigned long lastSendTime = 0;    // last send time
-unsigned long lastProcessTime = 0; // last processing time
+unsigned long nextSendTime = 0;    // last send time
+unsigned long nextProcessTime = 0; // last processing time
 bool isNewMessageReceived(false);
 bool isButtonProcessing(false);
+unsigned int i;
 
 void setup()
 {
@@ -51,27 +53,36 @@ void setup()
 void loop()
 {
   unsigned long tick = millis();
+  if(1000 < i){
+    DEBUG_MSG_ONE_LN(".");
+    i = 0;
+  }
+  i++;
 
   // Application processing Task
-  if ((tick - lastProcessTime) > mNode.getProcessingTimeInterval()
+  if (tick >= nextProcessTime
     || isNewMessageReceived
     || isButtonProcessing) {
     bool isRunFastly = mNode.appProcessing();
 
-    lastProcessTime = millis();
-
     // Artificially set the time after ProcessingTimeInterval
-    if (isRunFastly) {
-      lastProcessTime -= mNode.getProcessingTimeInterval();
+    if (!isRunFastly) {
+      nextProcessTime = millis() + mNode.getProcessingTimeInterval();
+    }else {
+      nextProcessTime = millis();
     }
+    DEBUG_MSG("Processing");
   }
 
   // Send Task
-  if (((tick - lastSendTime) > mNode.getTransmissionTimeInterval())
+  if ((tick >= nextSendTime)
     || (mNode.getTransmissionNowFlag() == true)) {
     mNode.setTransmissionNowFlag(false);
+    DEBUG_MSG_VAR(tick);
     mLoRaHome.sendToGateway();
-    lastSendTime = millis(); // timestamp the message
+    DEBUG_MSG("");
+
+    nextSendTime = millis() + mNode.getTransmissionTimeInterval();
   }
 
   // Receive Task
@@ -79,4 +90,9 @@ void loop()
 
   // Button Management for door action
   isButtonProcessing = mNode.buttonMgt();
+
+  // if (tick >= nextProcessTime || tick >= nextSendTime) {
+  //   mLoRaHome.reset();
+  //   DEBUG_MSG("Reset");
+  // }
 }

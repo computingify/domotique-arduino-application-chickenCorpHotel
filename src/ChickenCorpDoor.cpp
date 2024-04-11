@@ -1,7 +1,7 @@
 #include "ChickenCorpDoor.h"
 #include "NodeConfig.h"
 
-#define DEBUG
+// #define DEBUG
 #ifdef DEBUG
 #define DEBUG_MSG(x) Serial.println(F(x))
 #define DEBUG_MSG_VAR(x) Serial.println(x)
@@ -113,7 +113,14 @@ bool ChickenCorpDoor::appProcessing() {
     // Manage door
     if (eDoorState::eOpenning == mMotor.GetState()
         || eDoorState::eClosing == mMotor.GetState()) {
+
         isRunFastly = !mMotor.isProcessFinish();
+
+        // When door is arrived at stop position, set flag transmission to send the current state to jeedom
+        if(eDoorState::eOpened == mMotor.GetState()
+            || eDoorState::eClosed == mMotor.GetState()){
+                setTransmissionNowFlag(true);
+        }
     }
 
     return isRunFastly;
