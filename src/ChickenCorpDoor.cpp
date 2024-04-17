@@ -104,44 +104,32 @@ bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
 * Invoke every loop of the nodes before Rx and Tx
 * ONe should benefit from using processingTimeInterval to avoid overloading the node
 */
-bool ChickenCorpDoor::appProcessing() {
-    bool isRunFastly(false);
+void ChickenCorpDoor::appProcessing() {
 
     // Sample lux measure
     mLux.Run();
 
+    // Buttons management
+    buttonMgt();
+
     // Manage door
-    if (eDoorState::eOpenning == mMotor.GetState()
-        || eDoorState::eClosing == mMotor.GetState()) {
-
-        isRunFastly = !mMotor.isProcessFinish();
-
-        // When door is arrived at stop position, set flag transmission to send the current state to jeedom
-        if(eDoorState::eOpened == mMotor.GetState()
-            || eDoorState::eClosed == mMotor.GetState()){
-                setTransmissionNowFlag(true);
-        }
+    bool isStateChanged = mMotor.run();
+    if(isStateChanged){
+        setTransmissionNowFlag(true);
     }
-
-    return isRunFastly;
 }
 
-bool ChickenCorpDoor::buttonMgt() {
-    bool runFastly = false;
+void ChickenCorpDoor::buttonMgt() {
     if(HIGH == digitalRead(mButtonOpen)
         && (eDoorState::eOpenning != mMotor.GetState()
             && eDoorState::eOpened != mMotor.GetState())){
         mMotor.Open();
         DEBUG_MSG("Open requested");
-        runFastly = true;
     }
     else if(HIGH == digitalRead(mButtonClose)
         && (eDoorState::eClosing != mMotor.GetState()
             && eDoorState::eClosed != mMotor.GetState())){
         mMotor.Close();
         DEBUG_MSG("Close requested");
-        runFastly = true;
     }
-
-    return runFastly;
 }

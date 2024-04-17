@@ -16,11 +16,11 @@ public:
     virtual ~ChickenCorpDoor() = default;
 
     void appSetup();
-    virtual bool appProcessing() override;
+    virtual void appProcessing() override;
     void addJsonTxPayload(JsonDocument& payload);
     virtual bool parseJsonRxPayload(JsonDocument& payload) override;
-    bool buttonMgt();
 private:
+    void buttonMgt();
     void commandRelay(uint8_t relay, uint8_t cmd);
     void parseJsonRelayCmd(uint8_t relay, char* cmd);
 

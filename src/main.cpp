@@ -22,10 +22,9 @@ ChickenCorpDoor mNode;
 LoRaHomeNode mLoRaHome(mNode);
 
 // sampling management
-unsigned long nextSendTime = 0;    // last send time
-unsigned long nextProcessTime = 0; // last processing time
-bool isNewMessageReceived(false);
-bool isButtonProcessing(false);
+unsigned long nextSendTime;    // last send time
+unsigned long nextProcessTime; // last processing time
+bool isNewMessageReceived;
 #ifdef DEBUG
 unsigned int i;
 #endif
@@ -45,8 +44,9 @@ void setup()
   // call node specific configuration (end user)
   mNode.appSetup();
 
-  // Update Data before start
-  mNode.appProcessing();
+  nextSendTime = 0;
+  nextProcessTime = 0;
+  isNewMessageReceived = false;
 }
 
 /**
@@ -67,23 +67,20 @@ void loop()
 
   // Application processing Task
   if (tick >= nextProcessTime
-    || isNewMessageReceived
-    || isButtonProcessing) {
-    bool isRunFastly = mNode.appProcessing();
+    || isNewMessageReceived) {
+    
+    mNode.appProcessing();
 
-    // Artificially set the time after ProcessingTimeInterval
-    if (!isRunFastly) {
-      nextProcessTime = millis() + mNode.getProcessingTimeInterval();
-    }else {
-      nextProcessTime = millis();
-    }
+    nextProcessTime = millis() + mNode.getProcessingTimeInterval();
     DEBUG_MSG("Processing");
   }
 
   // Send Task
   if ((tick >= nextSendTime)
     || (mNode.getTransmissionNowFlag() == true)) {
+      
     mNode.setTransmissionNowFlag(false);
+
     DEBUG_MSG_VAR(tick);
     mLoRaHome.sendToGateway();
     DEBUG_MSG("");
@@ -93,7 +90,4 @@ void loop()
 
   // Receive Task
   isNewMessageReceived = mLoRaHome.receiveLoraMessage();
-
-  // Button Management for door action
-  isButtonProcessing = mNode.buttonMgt();
 }

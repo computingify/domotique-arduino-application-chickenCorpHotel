@@ -20,9 +20,8 @@ public:
     * App processing of the node.
     * Invoke every processing time interval of the nodes before Rx and Tx
     * One should benefit from well defining processingTimeInterval to avoid overloading the node
-    * return true if need to run fastly (at the next main loop), even false if no process in progress
     */
-  virtual bool appProcessing() = 0;
+  virtual void appProcessing() = 0;
   /**
     * Add JSON Tx payload messages
     * @param payload the JSON payload to be completed as per application needs
