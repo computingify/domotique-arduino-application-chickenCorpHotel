@@ -72,18 +72,15 @@ void loop()
     mNode.appProcessing();
 
     nextProcessTime = millis() + mNode.getProcessingTimeInterval();
-    DEBUG_MSG("Processing");
   }
 
   // Send Task
   if ((tick >= nextSendTime)
     || (mNode.getTransmissionNowFlag() == true)) {
-      
+
     mNode.setTransmissionNowFlag(false);
 
-    DEBUG_MSG_VAR(tick);
     mLoRaHome.sendToGateway();
-    DEBUG_MSG("");
 
     nextSendTime = millis() + mNode.getTransmissionTimeInterval();
   }

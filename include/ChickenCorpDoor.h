@@ -8,6 +8,7 @@
 #include "actionner/DigitalOutput.h"
 #include "reader/AnalogInputFiltered.h"
 #include "reader/DHT/DHT.h"
+#include "tools/State.h"
 
 class ChickenCorpDoor : public LoRaNode
 {
@@ -25,7 +26,8 @@ private:
     void parseJsonRelayCmd(uint8_t relay, char* cmd);
 
     AnalogInputFiltered mLux;
-    HBridge mMotor;
+    HBridge mMotorDriver;
+    StateMachine mMotor;
     DHT mTempHumidity;
     DigitalOutput mRadio;
     int mButtonOpen;

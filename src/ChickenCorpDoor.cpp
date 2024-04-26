@@ -16,10 +16,11 @@
  **********************************************************************/
 ChickenCorpDoor::ChickenCorpDoor() :
     mLux(PIN_LUX_METER),
-    mMotor(PIN_MOTOR_IN1,
+    mMotorDriver(PIN_MOTOR_IN1,
            PIN_MOTOR_IN2,
            PIN_MOTOR_LIMIT_OPEN,
            PIN_MOTOR_LIMIT_CLOSE),
+    mMotor(mMotorDriver),
     mTempHumidity(PIN_DHT22, DHT22),
     mRadio(PIN_RADIO),
     mButtonOpen(PIN_MOTOR_OPEN),
@@ -74,13 +75,13 @@ bool ChickenCorpDoor::parseJsonRxPayload(JsonDocument& payload) {
     DEBUG_MSG_VAR(jsonString);
     if (!payload[MSG_DOOR].isNull()) {
         if (OPEN == payload[MSG_DOOR]) {
-            mMotor.Open();
+            mMotor.SetRequest(eOpen);
         }
         else if (CLOSE == payload[MSG_DOOR]) {
-            mMotor.Close();
+            mMotor.SetRequest(eClose);
         }
         else if (STOP == payload[MSG_DOOR]) {
-            mMotor.Stop();
+            mMotor.SetRequest(eStop);
         }
         isMessageReceived = true;
     }
@@ -113,23 +114,19 @@ void ChickenCorpDoor::appProcessing() {
     buttonMgt();
 
     // Manage door
-    bool isStateChanged = mMotor.run();
+    bool isStateChanged = mMotor.Handle();
     if(isStateChanged){
         setTransmissionNowFlag(true);
     }
 }
 
 void ChickenCorpDoor::buttonMgt() {
-    if(HIGH == digitalRead(mButtonOpen)
-        && (eDoorState::eOpenning != mMotor.GetState()
-            && eDoorState::eOpened != mMotor.GetState())){
-        mMotor.Open();
+    if(HIGH == digitalRead(mButtonOpen)){
+        mMotor.SetRequest(eOpen);
         DEBUG_MSG("Open requested");
     }
-    else if(HIGH == digitalRead(mButtonClose)
-        && (eDoorState::eClosing != mMotor.GetState()
-            && eDoorState::eClosed != mMotor.GetState())){
-        mMotor.Close();
+    else if(HIGH == digitalRead(mButtonClose)){
+        mMotor.SetRequest(eClose);
         DEBUG_MSG("Close requested");
     }
 }
