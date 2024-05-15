@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 #include "NodeConfig.h"
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #define DEBUG_MSG_ONELINE(x) Serial.print(F(x))
@@ -20,7 +20,7 @@
 // -------------------------------------------------------
 // LoRa HARDWARE CONFIGURATION
 // -------------------------------------------------------
-//define the pins used by the transceiver module
+// define the pins used by the transceiver module
 
 #ifdef ARDUINO_UNO_BOARD
 #define SS (10)
@@ -51,7 +51,7 @@
 // LoRa signal bandwidth
 // Bandwidth is the frequency range of the chirp signal used to carry the baseband data.
 // Supported values are 7.8E3, 10.4E3, 15.6E3, 20.8E3, 31.25E3, 41.7E3, 62.5E3, 125E3, and 250E3
-#define LORA_SIGNAL_BANDWIDTH 125E3
+#define LORA_SIGNAL_BANDWIDTH 41.7E3
 // Coding rate of the radio
 // LoRa modulation also adds a forward error correction (FEC) in every data transmission.
 // This implementation is done by encoding 4-bit data with redundancies into 5-bit, 6-bit, 7-bit, or even 8-bit.
@@ -65,21 +65,19 @@
 #define ACK_TIMEOUT 2000 // 2000 ms max to receive an Ack
 #define MAX_RETRY_NO_VALID_ACK 3
 
-
 /**
  * @brief Construct a new LoRaHomeNode::LoRaHomeNode object
  *
  */
-LoRaHomeNode::LoRaHomeNode(ChickenCorpDoor& node) :
-  mNode(node)
+LoRaHomeNode::LoRaHomeNode(ChickenCorpDoor &node) : mNode(node)
 {
 }
 
 /**
-* Set Node in Rx Mode with active invert IQ
-* LoraWan principle to avoid node talking to each other
-* This way a Gateway only reads messages from Nodes and never reads messages from other Gateway, and Node never reads messages from other Node.
-*/
+ * Set Node in Rx Mode with active invert IQ
+ * LoraWan principle to avoid node talking to each other
+ * This way a Gateway only reads messages from Nodes and never reads messages from other Gateway, and Node never reads messages from other Node.
+ */
 void LoRaHomeNode::rxMode()
 {
   LoRa.enableInvertIQ(); // active invert I and Q signals
@@ -87,10 +85,10 @@ void LoRaHomeNode::rxMode()
 }
 
 /**
-* Set Node in Tx Mode with active invert IQ
-* LoraWan principle to avoid node talking to each other
-* This way a Gateway only reads messages from Nodes and never reads messages from other Gateway, and Node never reads messages from other Node.
-*/
+ * Set Node in Tx Mode with active invert IQ
+ * LoraWan principle to avoid node talking to each other
+ * This way a Gateway only reads messages from Nodes and never reads messages from other Gateway, and Node never reads messages from other Node.
+ */
 void LoRaHomeNode::txMode()
 {
   LoRa.idle();            // set standby mode
@@ -98,15 +96,16 @@ void LoRaHomeNode::txMode()
 }
 
 /**
-* initialize LoRa communication with #define settings (pins, SD, bandwidth, coding rate, frequency, sync word)
-* CRC is enabled
-* set in Rx Mode by default
-*/
+ * initialize LoRa communication with #define settings (pins, SD, bandwidth, coding rate, frequency, sync word)
+ * CRC is enabled
+ * set in Rx Mode by default
+ */
 void LoRaHomeNode::setup()
 {
   DEBUG_MSG("LoRaHomeNode::setup");
-  //setup LoRa transceiver module
+  // setup LoRa transceiver module
   DEBUG_MSG("--- LoRa Begin");
+  DEBUG_MSG_VAR(LORA_FREQUENCY);
   LoRa.setPins(SS, RST, DIO0);
   while (!LoRa.begin(LORA_FREQUENCY))
   {
@@ -114,12 +113,16 @@ void LoRaHomeNode::setup()
     delay(500);
   }
   DEBUG_MSG("--- setSpreadingFactor");
+  DEBUG_MSG_VAR(LORA_SPREADING_FACTOR);
   LoRa.setSpreadingFactor(LORA_SPREADING_FACTOR);
   DEBUG_MSG("--- setSignalBandwidth");
+  DEBUG_MSG_VAR(LORA_SIGNAL_BANDWIDTH);
   LoRa.setSignalBandwidth(LORA_SIGNAL_BANDWIDTH);
   DEBUG_MSG("--- setCodingRate4");
+  DEBUG_MSG_VAR(LORA_CODING_RATE_DENOMINATOR);
   LoRa.setCodingRate4(LORA_CODING_RATE_DENOMINATOR);
   DEBUG_MSG("--- setSyncWord");
+  DEBUG_MSG_VAR(LORA_SYNC_WORD);
   // Change sync word (0xF3) to match the receiver
   // The sync word assures you don't get LoRa messages from other LoRa transceivers
   // ranges from 0-0xFF
@@ -134,7 +137,7 @@ void LoRaHomeNode::setup()
 bool LoRaHomeNode::receiveAck()
 {
   unsigned long ackStartWaitingTime = millis();
-  //try to parse packet
+  // try to parse packet
   int packetSize = LoRa.parsePacket();
   LoRaHomeFrame lhf;
   // DEBUG_MSG("LoRaHomeNode::receiveAck");
@@ -176,37 +179,51 @@ bool LoRaHomeNode::receiveAck()
 }
 
 /**
-* [sendToLora2MQTTGateway description]
-*/
+ * [sendToLora2MQTTGateway description]
+ */
 void LoRaHomeNode::sendToGateway()
 {
   int retry = 0;
-  DEBUG_MSG("LoRaHomeNode::sendToGateway()");
+  // DEBUG_MSG("LoRaHomeNode::sendToGateway()");
   uint8_t txBuffer[LH_FRAME_MAX_SIZE];
-  DEBUG_MSG("--- create LoraHomeFrame");
+  // DEBUG_MSG("--- create LoraHomeFrame");
   // create frame
   LoRaHomeFrame lhf(MY_NETWORK_ID, mNode.getNodeId(), LH_NODE_ID_GATEWAY, LH_MSG_TYPE_NODE_MSG_ACK_REQ, mNode.getTxCounter());
   // create payload
-  DEBUG_MSG("--- create LoraHomePayload");
-  StaticJsonDocument<128> jsonDoc;
-  mNode.addJsonTxPayload(jsonDoc);
-  serializeJson(jsonDoc, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
-  //add payload to the frame if any
+  // DEBUG_MSG("--- create LoraHomePayload");
+  JsonDocument jsonDocToSend;
+  // DEBUG_MSG("--- createed StaticJsonDocument");
+  mNode.addJsonTxPayload(jsonDocToSend);
+  // DEBUG_MSG("--- serializeJson");
+  serializeJson(jsonDocToSend, lhf.jsonPayload, LH_FRAME_MAX_PAYLOAD_SIZE);
+  // add payload to the frame if any
+  // DEBUG_MSG("--- serialize LoraHomeFrame");
   uint8_t size = lhf.serialize(txBuffer);
-  DEBUG_MSG("--- LoraHomeFrame serialized");
+  // DEBUG_MSG("--- serialize LoraHomeFrame serialized");
+  // DEBUG_MSG("--- LoraHomeFrame serialized");
   // send the LoRa message until valid ack is received with max retries
+  bool ackReceived(false);
   do
   {
     DEBUG_MSG_ONELINE("--- Try sending for retry = ");
     DEBUG_MSG_VAR(retry);
     retry++;
     this->send(txBuffer, size);
-    DEBUG_MSG("--- Sent");
-  } while ((receiveAck() == false) && (retry < MAX_RETRY_NO_VALID_ACK));
+    // DEBUG_MSG("--- Sent");
+    ackReceived = receiveAck();
+  } while ((ackReceived == false) && (retry < MAX_RETRY_NO_VALID_ACK));
   // increment TxCounter
   // TODO should only increment TxCounter if msg sent + ack received ... else error
   mNode.incrementTxCounter();
-  DEBUG_MSG("--- Send operation Finished");
+  if(ackReceived){
+    DEBUG_MSG("--- Send operation Finished => SUCCESS");
+  }else {
+    DEBUG_MSG("--- Send operation Finished => FAILLURE");
+  }
+  DEBUG_MSG("RSSI:");
+  DEBUG_MSG_VAR(LoRa.packetRssi());
+  DEBUG_MSG("SNR:");
+  DEBUG_MSG_VAR(LoRa.packetSnr() );
 }
 
 /**
@@ -214,32 +231,32 @@ void LoRaHomeNode::sendToGateway()
  *
  * @param txBuffer
  */
-void LoRaHomeNode::send(uint8_t* txBuffer, uint8_t size)
+void LoRaHomeNode::send(uint8_t *txBuffer, uint8_t size)
 {
   // DEBUG_MSG("--- sending LoRa message to LoRa2MQTT gateway");
   this->txMode();
-  DEBUG_MSG("Send: Transmit mode");
+  // DEBUG_MSG("Send: Transmit mode");
   LoRa.beginPacket();
-  DEBUG_MSG("Send: begin packet done");
+  // DEBUG_MSG("Send: begin packet done");
   for (uint8_t i = 0; i < size; i++)
   {
     LoRa.write(txBuffer[i]);
     // DEBUG_MSG_VAR(txBuffer[i]);
   }
   LoRa.endPacket();
-  DEBUG_MSG("Send: packet done");
+  // DEBUG_MSG("Send: packet done");
   this->rxMode();
-  DEBUG_MSG("Send: Receive mode");
+  // DEBUG_MSG("Send: Receive mode");
 }
 
 /**
-* [receiveLoraMessage description]
-*/
+ * [receiveLoraMessage description]
+ */
 bool LoRaHomeNode::receiveLoraMessage()
 {
   bool isMessageReceived(false);
 
-  //try to parse packet
+  // try to parse packet
   int packetSize = LoRa.parsePacket();
   // return immediately if no message available
   if (packetSize == 0)
@@ -279,6 +296,7 @@ bool LoRaHomeNode::receiveLoraMessage()
   // Am I the node invoked for this messages
   if (nodeInvoked == mNode.getNodeId())
   {
+    JsonDocument jsonDoc;
     // parse JSON message
     DeserializationError error = deserializeJson(jsonDoc, lhf.jsonPayload);
     // deserializeJson error
@@ -296,7 +314,6 @@ bool LoRaHomeNode::receiveLoraMessage()
       this->send(txBuffer, size);
       DEBUG_MSG("--- ack sent");
     }
-    //JsonObject root = jsonDoc.to<JsonObject>();
     isMessageReceived = mNode.parseJsonRxPayload(jsonDoc);
   }
 
